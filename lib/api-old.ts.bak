@@ -1,0 +1,145 @@
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost/nou-backend/api';
+
+interface ApiOptions extends RequestInit {
+  token?: string;
+}
+
+async function apiRequest<T>(endpoint: string, options: ApiOptions = {}): Promise<T> {
+  const { token, ...fetchOptions } = options;
+  
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+  };
+
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+
+  const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+    ...fetchOptions,
+    headers,
+  });
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ message: 'Erreur réseau' }));
+    throw new Error(error.message || `HTTP ${response.status}`);
+  }
+
+  return response.json();
+}
+
+// API Admin - Membres
+export const membresApi = {
+  getAll: (token: string) => 
+    apiRequest('/admin/membres', { token }),
+  
+  getById: (id: number, token: string) => 
+    apiRequest(`/admin/membres/${id}`, { token }),
+  
+  create: (data: any, token: string) => 
+    apiRequest('/admin/membres', { 
+      method: 'POST', 
+      body: JSON.stringify(data),
+      token 
+    }),
+  
+  update: (id: number, data: any, token: string) => 
+    apiRequest(`/admin/membres/${id}`, { 
+      method: 'PUT', 
+      body: JSON.stringify(data),
+      token 
+    }),
+  
+  delete: (id: number, token: string) => 
+    apiRequest(`/admin/membres/${id}`, { 
+      method: 'DELETE',
+      token 
+    }),
+};
+
+// API Admin - Cotisations
+export const cotisationsApi = {
+  getPending: (token: string) => 
+    apiRequest('/admin/cotisations/pending', { token }),
+  
+  validate: (id: number, token: string) => 
+    apiRequest(`/admin/cotisations/${id}/validate`, { 
+      method: 'POST',
+      token 
+    }),
+  
+  reject: (id: number, token: string) => 
+    apiRequest(`/admin/cotisations/${id}/reject`, { 
+      method: 'POST',
+      token 
+    }),
+};
+
+// API Admin - Podcasts
+export const podcastsApi = {
+  getAll: (token: string) => 
+    apiRequest('/admin/podcasts', { token }),
+  
+  upload: (formData: FormData, token: string) => {
+    return fetch(`${API_BASE_URL}/admin/podcasts/upload`, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${token}` },
+      body: formData,
+    }).then(res => res.json());
+  },
+  
+  setLive: (id: number, isLive: boolean, token: string) => 
+    apiRequest(`/admin/podcasts/${id}/live`, { 
+      method: 'POST',
+      body: JSON.stringify({ is_live: isLive }),
+      token 
+    }),
+};
+
+// API Admin - Quiz
+export const quizApi = {
+  getAll: (token: string) => 
+    apiRequest('/admin/quiz', { token }),
+  
+  create: (data: any, token: string) => 
+    apiRequest('/admin/quiz', { 
+      method: 'POST',
+      body: JSON.stringify(data),
+      token 
+    }),
+  
+  addQuestion: (quizId: number, data: any, token: string) => 
+    apiRequest(`/admin/quiz/${quizId}/questions`, { 
+      method: 'POST',
+      body: JSON.stringify(data),
+      token 
+    }),
+};
+
+// API Admin - Notifications
+export const notificationsApi = {
+  send: (data: {
+    title: string;
+    message: string;
+    target_type: 'all' | 'departement' | 'role';
+    target_value?: string;
+  }, token: string) => 
+    apiRequest('/admin/notifications/send', { 
+      method: 'POST',
+      body: JSON.stringify(data),
+      token 
+    }),
+};
+
+// API Admin - Stats
+export const statsApi = {
+  getDashboard: (token: string) => 
+    apiRequest<{
+      nombre_membres: number;
+      cotisations_validees: number;
+      total_collecte: number;
+      top_parrains: Array<{ nom: string; prenom: string; filleuls: number }>;
+    }>('/admin/stats/dashboard', { token }),
+};
+
+export default apiRequest;
