@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Mic, Plus, Play, Edit, Trash2, Eye, EyeOff } from 'lucide-react';
+import { Mic, Plus, Edit, Trash2 } from 'lucide-react';
 import { adminService } from '@/lib/api';
 import { Podcast } from '@/types/backend';
 
@@ -76,8 +76,6 @@ export default function PodcastsPage() {
         {
           titre: formData.get('titre') as string,
           description: formData.get('description') as string,
-          categorie: formData.get('categorie') as string,
-          duree: parseInt(formData.get('duree') as string) || 0,
         },
         audioFile,
         coverFile || undefined,
@@ -108,8 +106,6 @@ export default function PodcastsPage() {
         {
           titre: formData.get('titre') as string,
           description: formData.get('description') as string,
-          categorie: formData.get('categorie') as string,
-          duree: parseInt(formData.get('duree') as string) || 0,
         },
         token
       );
@@ -150,26 +146,6 @@ export default function PodcastsPage() {
     }
   };
 
-  const handleTogglePublish = async (podcast: Podcast) => {
-    // Si est_publie est undefined, on considère qu'il est publié, donc on veut le dépublier
-    const currentStatus = podcast.est_publie !== false;
-    const newStatus = !currentStatus;
-    try {
-      const result = await adminService.togglePodcastPublish(
-        podcast.id,
-        newStatus,
-        token
-      );
-      if (result.success) {
-        loadPodcasts();
-      } else {
-        alert(result.message || 'Erreur lors du changement de statut');
-      }
-    } catch (error) {
-      console.error('Erreur changement statut:', error);
-      alert('Erreur lors du changement de statut');
-    }
-  };
 
   if (loading && podcasts.length === 0) {
     return (
@@ -221,16 +197,6 @@ export default function PodcastsPage() {
                 <Label htmlFor="description">Description</Label>
                 <Textarea id="description" name="description" rows={3} />
               </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="categorie">Catégorie</Label>
-                  <Input id="categorie" name="categorie" placeholder="Politique, Éducation..." />
-                </div>
-                <div>
-                  <Label htmlFor="duree">Durée (minutes)</Label>
-                  <Input id="duree" name="duree" type="number" />
-                </div>
-              </div>
               <div>
                 <Label htmlFor="audio">Fichier audio * (MP3, WAV)</Label>
                 <Input id="audio" name="audio" type="file" accept="audio/*" required />
@@ -276,26 +242,6 @@ export default function PodcastsPage() {
                   rows={3}
                 />
               </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="edit-categorie">Catégorie</Label>
-                  <Input
-                    id="edit-categorie"
-                    name="categorie"
-                    defaultValue={editingPodcast?.categorie}
-                    placeholder="Politique, Éducation..."
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="edit-duree">Durée (minutes)</Label>
-                  <Input
-                    id="edit-duree"
-                    name="duree"
-                    type="number"
-                    defaultValue={editingPodcast?.duree}
-                  />
-                </div>
-              </div>
               <div className="flex justify-end gap-2">
                 <Button
                   type="button"
@@ -327,14 +273,11 @@ export default function PodcastsPage() {
                       <Mic className="h-5 w-5" />
                       {podcast.titre}
                     </CardTitle>
-                    <div className="flex gap-2">
-                      {podcast.categorie && (
-                        <Badge variant="secondary">{podcast.categorie}</Badge>
-                      )}
-                      <Badge variant={podcast.est_publie !== false ? "default" : "outline"}>
-                        {podcast.est_publie !== false ? "Publié" : "Non publié"}
+                    {podcast.duree_en_secondes && (
+                      <Badge variant="secondary">
+                        {Math.floor(podcast.duree_en_secondes / 60)} min
                       </Badge>
-                    </div>
+                    )}
                   </div>
                   {podcast.est_en_direct && <Badge>En direct</Badge>}
                 </div>
@@ -361,9 +304,8 @@ export default function PodcastsPage() {
                   )}
                   <div className="flex items-center justify-between">
                     <div className="text-sm">
-                      {podcast.duree && <span>{podcast.duree} min</span>}
                       {podcast.nombre_ecoutes !== undefined && (
-                        <span className="ml-2 text-muted-foreground">
+                        <span className="text-muted-foreground">
                           {podcast.nombre_ecoutes} écoutes
                         </span>
                       )}
@@ -379,17 +321,6 @@ export default function PodcastsPage() {
                       }}
                     >
                       <Edit className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => handleTogglePublish(podcast)}
-                    >
-                      {podcast.est_publie !== false ? (
-                        <EyeOff className="h-4 w-4" />
-                      ) : (
-                        <Eye className="h-4 w-4" />
-                      )}
                     </Button>
                     <Button
                       size="sm"

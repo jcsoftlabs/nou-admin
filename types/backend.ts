@@ -174,12 +174,11 @@ export interface Podcast {
   id: number;
   titre: string;
   description?: string;
-  url_audio: string;
-  url_cover?: string;
-  categorie?: string;
-  duree?: number;
+  url_audio?: string;
+  url_live?: string;
+  img_couverture_url?: string;
+  duree_en_secondes?: number;
   est_en_direct?: boolean;
-  est_publie?: boolean;
   date_publication?: string;
   nombre_ecoutes?: number;
 }
