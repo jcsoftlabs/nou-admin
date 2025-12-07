@@ -179,6 +179,7 @@ export interface Podcast {
   categorie?: string;
   duree?: number;
   est_en_direct?: boolean;
+  est_publie?: boolean;
   date_publication?: string;
   nombre_ecoutes?: number;
 }

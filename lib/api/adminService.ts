@@ -206,6 +206,35 @@ export class AdminService {
   }
 
   /**
+   * Mettre à jour un podcast
+   */
+  async updatePodcast(
+    id: number,
+    data: Partial<Podcast>,
+    token: string
+  ): Promise<ApiResponse<Podcast>> {
+    return apiClient.put<Podcast>(`/admin/podcasts/${id}`, data, token);
+  }
+
+  /**
+   * Supprimer un podcast
+   */
+  async deletePodcast(id: number, token: string): Promise<ApiResponse<void>> {
+    return apiClient.delete<void>(`/admin/podcasts/${id}`, token);
+  }
+
+  /**
+   * Publier/Dépublier un podcast
+   */
+  async togglePodcastPublish(
+    id: number,
+    est_publie: boolean,
+    token: string
+  ): Promise<ApiResponse<Podcast>> {
+    return apiClient.put<Podcast>(`/admin/podcasts/${id}/publish`, { est_publie }, token);
+  }
+
+  /**
    * Obtenir la liste des quiz
    */
   async getQuiz(

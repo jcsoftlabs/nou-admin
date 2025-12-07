@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Mic, Plus, Play } from 'lucide-react';
+import { Mic, Plus, Play, Edit, Trash2, Eye, EyeOff } from 'lucide-react';
 import { adminService } from '@/lib/api';
 import { Podcast } from '@/types/backend';
 
@@ -21,6 +21,8 @@ export default function PodcastsPage() {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [error, setError] = useState<string | null>(null);
+  const [editingPodcast, setEditingPodcast] = useState<Podcast | null>(null);
+  const [isEditOpen, setIsEditOpen] = useState(false);
 
   useEffect(() => {
     loadPodcasts();
@@ -91,6 +93,81 @@ export default function PodcastsPage() {
       console.error('Erreur upload:', error);
     } finally {
       setUploading(false);
+    }
+  };
+
+  const handleEdit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!editingPodcast) return;
+
+    const formData = new FormData(e.currentTarget);
+    try {
+      setUploading(true);
+      const result = await adminService.updatePodcast(
+        editingPodcast.id,
+        {
+          titre: formData.get('titre') as string,
+          description: formData.get('description') as string,
+          categorie: formData.get('categorie') as string,
+          duree: parseInt(formData.get('duree') as string) || 0,
+        },
+        token
+      );
+
+      if (result.success) {
+        setIsEditOpen(false);
+        setEditingPodcast(null);
+        loadPodcasts();
+      }
+    } catch (error) {
+      console.error('Erreur modification:', error);
+      alert('Erreur lors de la modification');
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleDelete = async (id: number) => {
+    if (!confirm('Êtes-vous sûr de vouloir supprimer ce podcast ?')) return;
+
+    if (!token) {
+      alert('Token d\'authentification manquant. Veuillez recharger la page.');
+      return;
+    }
+
+    try {
+      const result = await adminService.deletePodcast(id, token);
+      if (result.success) {
+        alert('Podcast supprimé avec succès');
+        loadPodcasts();
+      } else {
+        console.error('Erreur du serveur:', result);
+        alert(result.message || 'Erreur lors de la suppression');
+      }
+    } catch (error) {
+      console.error('Erreur suppression:', error);
+      alert('Erreur lors de la suppression: ' + (error as Error).message);
+    }
+  };
+
+  const handleTogglePublish = async (podcast: Podcast) => {
+    // Si est_publie est undefined, on considère qu'il est publié, donc on veut le dépublier
+    const currentStatus = podcast.est_publie !== false;
+    const newStatus = !currentStatus;
+    try {
+      const result = await adminService.togglePodcastPublish(
+        podcast.id,
+        newStatus,
+        token
+      );
+      if (result.success) {
+        loadPodcasts();
+      } else {
+        alert(result.message || 'Erreur lors du changement de statut');
+      }
+    } catch (error) {
+      console.error('Erreur changement statut:', error);
+      alert('Erreur lors du changement de statut');
     }
   };
 
@@ -173,6 +250,70 @@ export default function PodcastsPage() {
             </form>
           </DialogContent>
         </Dialog>
+
+        {/* Dialog de modification */}
+        <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle>Modifier le podcast</DialogTitle>
+            </DialogHeader>
+            <form onSubmit={handleEdit} className="space-y-4">
+              <div>
+                <Label htmlFor="edit-titre">Titre *</Label>
+                <Input
+                  id="edit-titre"
+                  name="titre"
+                  defaultValue={editingPodcast?.titre}
+                  required
+                />
+              </div>
+              <div>
+                <Label htmlFor="edit-description">Description</Label>
+                <Textarea
+                  id="edit-description"
+                  name="description"
+                  defaultValue={editingPodcast?.description}
+                  rows={3}
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="edit-categorie">Catégorie</Label>
+                  <Input
+                    id="edit-categorie"
+                    name="categorie"
+                    defaultValue={editingPodcast?.categorie}
+                    placeholder="Politique, Éducation..."
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="edit-duree">Durée (minutes)</Label>
+                  <Input
+                    id="edit-duree"
+                    name="duree"
+                    type="number"
+                    defaultValue={editingPodcast?.duree}
+                  />
+                </div>
+              </div>
+              <div className="flex justify-end gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => {
+                    setIsEditOpen(false);
+                    setEditingPodcast(null);
+                  }}
+                >
+                  Annuler
+                </Button>
+                <Button type="submit" disabled={uploading}>
+                  {uploading ? 'Modification...' : 'Enregistrer'}
+                </Button>
+              </div>
+            </form>
+          </DialogContent>
+        </Dialog>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -186,9 +327,14 @@ export default function PodcastsPage() {
                       <Mic className="h-5 w-5" />
                       {podcast.titre}
                     </CardTitle>
-                    {podcast.categorie && (
-                      <Badge variant="secondary">{podcast.categorie}</Badge>
-                    )}
+                    <div className="flex gap-2">
+                      {podcast.categorie && (
+                        <Badge variant="secondary">{podcast.categorie}</Badge>
+                      )}
+                      <Badge variant={podcast.est_publie !== false ? "default" : "outline"}>
+                        {podcast.est_publie !== false ? "Publié" : "Non publié"}
+                      </Badge>
+                    </div>
                   </div>
                   {podcast.est_en_direct && <Badge>En direct</Badge>}
                 </div>
@@ -197,22 +343,54 @@ export default function PodcastsPage() {
                 <p className="text-sm text-muted-foreground line-clamp-2 mb-4">
                   {podcast.description || 'Pas de description'}
                 </p>
-                <div className="flex items-center justify-between">
-                  <div className="text-sm">
-                    {podcast.duree && <span>{podcast.duree} min</span>}
-                    {podcast.nombre_ecoutes !== undefined && (
-                      <span className="ml-2 text-muted-foreground">
-                        {podcast.nombre_ecoutes} écoutes
-                      </span>
-                    )}
-                  </div>
+                <div className="space-y-3">
+                  {/* Lecteur audio */}
                   {podcast.audio_url && (
-                    <Button size="sm" variant="outline" asChild>
-                      <a href={podcast.audio_url} target="_blank" rel="noopener noreferrer">
-                        <Play className="h-4 w-4" />
-                      </a>
-                    </Button>
+                    <audio controls className="w-full">
+                      <source src={podcast.audio_url} type="audio/mpeg" />
+                      Votre navigateur ne supporte pas l'élément audio.
+                    </audio>
                   )}
+                  <div className="flex items-center justify-between">
+                    <div className="text-sm">
+                      {podcast.duree && <span>{podcast.duree} min</span>}
+                      {podcast.nombre_ecoutes !== undefined && (
+                        <span className="ml-2 text-muted-foreground">
+                          {podcast.nombre_ecoutes} écoutes
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => {
+                        setEditingPodcast(podcast);
+                        setIsEditOpen(true);
+                      }}
+                    >
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => handleTogglePublish(podcast)}
+                    >
+                      {podcast.est_publie !== false ? (
+                        <EyeOff className="h-4 w-4" />
+                      ) : (
+                        <Eye className="h-4 w-4" />
+                      )}
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="destructive"
+                      onClick={() => handleDelete(podcast.id)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </div>
               </CardContent>
             </Card>

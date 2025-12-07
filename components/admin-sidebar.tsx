@@ -14,7 +14,6 @@ import {
   HelpCircle,
   Bell,
   BookOpen,
-  ShieldCheck, // Icone pour Audit
   GitBranch, // Icone pour Parrainage
   Gift, // Icone pour Dons
   Newspaper, // Icone pour News
@@ -94,11 +93,6 @@ const menuItems = [
     title: 'Parrainage',
     href: '/dashboard/parrainage',
     icon: GitBranch,
-  },
-  {
-    title: 'Audit',
-    href: '/dashboard/audit',
-    icon: ShieldCheck,
   },
 ];
 
