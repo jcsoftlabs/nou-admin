@@ -387,6 +387,53 @@ export class AdminService {
   }
 
   /**
+   * Créer un module pour une formation avec fichiers
+   */
+  async createModuleWithFiles(
+    formationId: number,
+    data: {
+      titre: string;
+      description?: string;
+      ordre: number;
+      type_contenu?: string;
+      contenu_texte?: string;
+    },
+    files: {
+      pdf?: File;
+      ppt?: File;
+      video?: File;
+      image?: File;
+      fichiers?: File[];
+    },
+    token: string
+  ): Promise<ApiResponse<FormationModule>> {
+    const formData = new FormData();
+    
+    // Ajouter les données texte
+    formData.append('titre', data.titre);
+    if (data.description) formData.append('description', data.description);
+    formData.append('ordre', data.ordre.toString());
+    if (data.type_contenu) formData.append('type_contenu', data.type_contenu);
+    if (data.contenu_texte) formData.append('contenu_texte', data.contenu_texte);
+    
+    // Ajouter les fichiers
+    if (files.pdf) formData.append('pdf', files.pdf);
+    if (files.ppt) formData.append('ppt', files.ppt);
+    if (files.video) formData.append('video', files.video);
+    if (files.image) formData.append('image', files.image);
+    if (files.fichiers) {
+      files.fichiers.forEach(f => formData.append('fichiers', f));
+    }
+    
+    return apiClient.uploadFile<FormationModule>(
+      `/admin/formations/${formationId}/modules`,
+      formData,
+      token,
+      'POST'
+    );
+  }
+
+  /**
    * Mettre à jour un module de formation
    */
   async updateModule(
@@ -406,6 +453,53 @@ export class AdminService {
       `/admin/modules/${moduleId}`,
       data,
       token
+    );
+  }
+
+  /**
+   * Mettre à jour un module avec fichiers
+   */
+  async updateModuleWithFiles(
+    moduleId: number,
+    data: {
+      titre?: string;
+      description?: string;
+      ordre?: number;
+      type_contenu?: string;
+      contenu_texte?: string;
+    },
+    files: {
+      pdf?: File;
+      ppt?: File;
+      video?: File;
+      image?: File;
+      fichiers?: File[];
+    },
+    token: string
+  ): Promise<ApiResponse<FormationModule>> {
+    const formData = new FormData();
+    
+    // Ajouter les données texte
+    if (data.titre) formData.append('titre', data.titre);
+    if (data.description) formData.append('description', data.description);
+    if (data.ordre !== undefined) formData.append('ordre', data.ordre.toString());
+    if (data.type_contenu) formData.append('type_contenu', data.type_contenu);
+    if (data.contenu_texte) formData.append('contenu_texte', data.contenu_texte);
+    
+    // Ajouter les fichiers
+    if (files.pdf) formData.append('pdf', files.pdf);
+    if (files.ppt) formData.append('ppt', files.ppt);
+    if (files.video) formData.append('video', files.video);
+    if (files.image) formData.append('image', files.image);
+    if (files.fichiers) {
+      files.fichiers.forEach(f => formData.append('fichiers', f));
+    }
+    
+    return apiClient.uploadFile<FormationModule>(
+      `/admin/modules/${moduleId}`,
+      formData,
+      token,
+      'PUT'
     );
   }
 

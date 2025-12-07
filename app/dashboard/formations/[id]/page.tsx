@@ -63,6 +63,14 @@ export default function FormationDetailPage() {
     ordre: 0,
   });
 
+  const [moduleFiles, setModuleFiles] = useState<{
+    pdf?: File;
+    ppt?: File;
+    video?: File;
+    image?: File;
+    fichiers?: File[];
+  }>({});
+
   const [quizForm, setQuizForm] = useState({
     quizId: 0,
   });
@@ -104,10 +112,18 @@ export default function FormationDetailPage() {
 
   const handleCreateModule = async () => {
     try {
-      const result = await adminService.createModule(formationId, moduleForm, token);
+      // Utiliser createModuleWithFiles si des fichiers sont présents
+      const hasFiles = moduleFiles.pdf || moduleFiles.ppt || moduleFiles.video || 
+                       moduleFiles.image || (moduleFiles.fichiers && moduleFiles.fichiers.length > 0);
+      
+      const result = hasFiles
+        ? await adminService.createModuleWithFiles(formationId, moduleForm, moduleFiles, token)
+        : await adminService.createModule(formationId, moduleForm, token);
+      
       if (result.success) {
         setIsCreateModuleOpen(false);
         resetModuleForm();
+        setModuleFiles({});
         loadData();
       }
     } catch (error) {
@@ -118,10 +134,18 @@ export default function FormationDetailPage() {
   const handleUpdateModule = async () => {
     if (!selectedModule) return;
     try {
-      const result = await adminService.updateModule(selectedModule.id, moduleForm, token);
+      // Utiliser updateModuleWithFiles si des fichiers sont présents
+      const hasFiles = moduleFiles.pdf || moduleFiles.ppt || moduleFiles.video || 
+                       moduleFiles.image || (moduleFiles.fichiers && moduleFiles.fichiers.length > 0);
+      
+      const result = hasFiles
+        ? await adminService.updateModuleWithFiles(selectedModule.id, moduleForm, moduleFiles, token)
+        : await adminService.updateModule(selectedModule.id, moduleForm, token);
+      
       if (result.success) {
         setSelectedModule(null);
         resetModuleForm();
+        setModuleFiles({});
         loadData();
       }
     } catch (error) {
@@ -328,6 +352,85 @@ export default function FormationDetailPage() {
                 </div>
               </div>
 
+              {/* Fichiers (optionnels) */}
+              <div className="space-y-4 border-t pt-4">
+                <h4 className="font-semibold text-sm">Fichiers (optionnels)</h4>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="pdf_file">Fichier PDF</Label>
+                    <Input
+                      id="pdf_file"
+                      type="file"
+                      accept=".pdf"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) setModuleFiles({ ...moduleFiles, pdf: file });
+                      }}
+                    />
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="ppt_file">Présentation PowerPoint</Label>
+                    <Input
+                      id="ppt_file"
+                      type="file"
+                      accept=".ppt,.pptx"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) setModuleFiles({ ...moduleFiles, ppt: file });
+                      }}
+                    />
+                  </div>
+                </div>
+                
+                <div>
+                  <Label htmlFor="video_file">Fichier vidéo</Label>
+                  <Input
+                    id="video_file"
+                    type="file"
+                    accept=".mp4,.mov,.avi"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) setModuleFiles({ ...moduleFiles, video: file });
+                    }}
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Ou utilisez le champ "URL Vidéo" pour une vidéo YouTube
+                  </p>
+                </div>
+                
+                <div>
+                  <Label htmlFor="image_file">Image du module</Label>
+                  <Input
+                    id="image_file"
+                    type="file"
+                    accept=".jpg,.jpeg,.png,.gif"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) setModuleFiles({ ...moduleFiles, image: file });
+                    }}
+                  />
+                </div>
+                
+                <div>
+                  <Label htmlFor="extra_files">Fichiers supplémentaires (max 10)</Label>
+                  <Input
+                    id="extra_files"
+                    type="file"
+                    multiple
+                    accept=".pdf,.ppt,.pptx,.doc,.docx,.jpg,.jpeg,.png"
+                    onChange={(e) => {
+                      const files = Array.from(e.target.files || []);
+                      setModuleFiles({ ...moduleFiles, fichiers: files });
+                    }}
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Documents, images ou présentations additionnels
+                  </p>
+                </div>
+              </div>
+
               <div className="flex justify-end gap-2 pt-4">
                 <Button
                   variant="outline"
@@ -406,6 +509,48 @@ export default function FormationDetailPage() {
                           </p>
                         </div>
                       )}
+                      
+                      {/* Fichiers PDF */}
+                      {module.fichier_pdf_url && (
+                        <div className="flex items-center gap-2 text-muted-foreground">
+                          <FileText className="h-4 w-4" />
+                          <a href={module.fichier_pdf_url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline truncate">
+                            📄 Fichier PDF
+                          </a>
+                        </div>
+                      )}
+                      
+                      {/* Fichiers PowerPoint */}
+                      {module.fichier_ppt_url && (
+                        <div className="flex items-center gap-2 text-muted-foreground">
+                          <FileText className="h-4 w-4" />
+                          <a href={module.fichier_ppt_url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline truncate">
+                            📊 Présentation PowerPoint
+                          </a>
+                        </div>
+                      )}
+                      
+                      {/* Fichiers supplémentaires */}
+                      {module.fichiers_supplementaires && module.fichiers_supplementaires.length > 0 && (
+                        <div className="flex items-start gap-2 text-muted-foreground">
+                          <FileText className="h-4 w-4 mt-0.5" />
+                          <div className="flex flex-wrap gap-1">
+                            {module.fichiers_supplementaires.map((fichier, idx) => (
+                              <a
+                                key={idx}
+                                href={fichier.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-xs bg-secondary px-2 py-1 rounded hover:bg-secondary/80"
+                                title={fichier.nom}
+                              >
+                                {fichier.nom.length > 20 ? fichier.nom.substring(0, 20) + '...' : fichier.nom}
+                              </a>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      
                       {module.image_url && (
                         <div className="flex items-center gap-2 text-muted-foreground">
                           <ImageIcon className="h-4 w-4" />
