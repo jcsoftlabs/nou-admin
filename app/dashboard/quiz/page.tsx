@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { HelpCircle, Link as LinkIcon, Plus } from 'lucide-react';
+import { HelpCircle, Link as LinkIcon, Plus, Trash2 } from 'lucide-react';
 import { adminService } from '@/lib/api';
 import { Quiz } from '@/types/backend';
 
@@ -48,6 +48,21 @@ export default function QuizPage() {
       setQuizzes([]);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDelete = async (id: number) => {
+    if (!confirm('Supprimer ce quiz ?')) return;
+    try {
+      const res = await adminService.deleteQuiz(id, token);
+      if (res.success) {
+        loadQuizzes();
+      } else {
+        alert(res.message || 'Erreur lors de la suppression');
+      }
+    } catch (e) {
+      console.error('Erreur suppression quiz:', e);
+      alert('Erreur lors de la suppression');
     }
   };
 
@@ -113,11 +128,16 @@ export default function QuizPage() {
                   <span className="text-muted-foreground">
                     {quiz.questions?.length || 0} question(s)
                   </span>
-                  {quiz.date_expiration && (
-                    <span className="text-xs text-muted-foreground">
-                      Expire: {new Date(quiz.date_expiration).toLocaleDateString('fr-FR')}
-                    </span>
-                  )}
+                  <div className="flex items-center gap-2">
+                    {quiz.date_expiration && (
+                      <span className="text-xs text-muted-foreground">
+                        Expire: {new Date(quiz.date_expiration).toLocaleDateString('fr-FR')}
+                      </span>
+                    )}
+                    <Button size="sm" variant="destructive" onClick={() => handleDelete(quiz.id)}>
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </div>
               </CardContent>
             </Card>

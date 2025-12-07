@@ -108,6 +108,21 @@ export default function FormationsPage() {
     }
   };
 
+  const handleDelete = async (id: number) => {
+    if (!confirm('Supprimer cette formation ? Cette action est irréversible.')) return;
+    try {
+      const res = await adminService.deleteFormation(id, token);
+      if (res.success) {
+        loadData();
+      } else {
+        alert(res.message || 'Erreur lors de la suppression');
+      }
+    } catch (e) {
+      console.error('Erreur suppression formation:', e);
+      alert('Erreur lors de la suppression');
+    }
+  };
+
   const resetForm = () => {
     setFormData({
       titre: '',
@@ -293,6 +308,13 @@ export default function FormationsPage() {
                       onClick={() => openEditDialog(formation)}
                     >
                       <Edit className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="destructive"
+                      onClick={() => handleDelete(formation.id)}
+                    >
+                      <Trash2 className="h-4 w-4" />
                     </Button>
                     <Button
                       size="sm"

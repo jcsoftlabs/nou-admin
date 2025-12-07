@@ -353,9 +353,16 @@ export class AdminService {
     data: Partial<Formation>,
     token: string
   ): Promise<ApiResponse<Formation>> {
-    return apiClient.put<Formation>(`/admin/formations/${id}`, data, token);
+    return apiClient.put<Formation>(`/admin/formations/${id}`,
+      data, token);
   }
 
+  /**
+   * Supprimer une formation
+   */
+  async deleteFormation(id: number, token: string): Promise<ApiResponse<void>> {
+    return apiClient.delete<void>(`/admin/formations/${id}`, token);
+  }
   /**
    * Créer un module pour une formation
    */
