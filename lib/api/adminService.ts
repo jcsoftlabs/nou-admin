@@ -235,6 +235,13 @@ export class AdminService {
   }
 
   /**
+   * Incrémenter le compteur d'écoutes d'un podcast (public)
+   */
+  async incrementPodcastListen(id: number): Promise<ApiResponse<{ id: number; nombre_ecoutes: number }>> {
+    return apiClient.post<{ id: number; nombre_ecoutes: number }>(`/podcasts/${id}/listen`);
+  }
+
+  /**
    * Publier/Dépublier un podcast
    */
   async togglePodcastPublish(

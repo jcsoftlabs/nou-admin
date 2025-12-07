@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -23,6 +23,7 @@ export default function PodcastsPage() {
   const [error, setError] = useState<string | null>(null);
   const [editingPodcast, setEditingPodcast] = useState<Podcast | null>(null);
   const [isEditOpen, setIsEditOpen] = useState(false);
+  const incrementedRef = useRef<Set<number>>(new Set());
 
   useEffect(() => {
     loadPodcasts();
@@ -292,7 +293,21 @@ export default function PodcastsPage() {
                   {/* Lecteur audio */}
                   {podcast.url_audio ? (
                     <div className="bg-muted/30 p-3 rounded-lg">
-                      <audio controls className="w-full" controlsList="nodownload">
+                      <audio
+                        controls
+                        className="w-full"
+                        controlsList="nodownload"
+                        onPlay={async () => {
+                          if (!incrementedRef.current.has(podcast.id)) {
+                            incrementedRef.current.add(podcast.id);
+                            const res = await adminService.incrementPodcastListen(podcast.id);
+                            if (res.success && res.data) {
+                              // mettre à jour localement pour feedback immédiat
+                              setPodcasts((prev) => prev.map(p => p.id === podcast.id ? { ...p, nombre_ecoutes: res.data!.nombre_ecoutes } : p));
+                            }
+                          }
+                        }}
+                      >
                         <source src={podcast.url_audio} type="audio/mpeg" />
                         <source src={podcast.url_audio} type="audio/mp3" />
                         <source src={podcast.url_audio} type="audio/wav" />
