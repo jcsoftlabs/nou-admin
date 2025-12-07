@@ -107,6 +107,8 @@ export default function PodcastsPage() {
           titre: formData.get('titre') as string,
           description: formData.get('description') as string,
         },
+        undefined,
+        undefined,
         token
       );
 

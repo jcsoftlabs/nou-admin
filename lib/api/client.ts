@@ -105,7 +105,8 @@ class ApiClient {
   async uploadFile<T>(
     endpoint: string,
     formData: FormData,
-    token?: string
+    token?: string,
+    method: 'POST' | 'PUT' = 'POST'
   ): Promise<ApiResponse<T>> {
     try {
       const headers: HeadersInit = {};
@@ -114,7 +115,7 @@ class ApiClient {
       }
 
       const response = await fetch(`${this.baseUrl}${endpoint}`, {
-        method: 'POST',
+        method,
         headers,
         body: formData,
       });

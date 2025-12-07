@@ -210,10 +210,21 @@ export class AdminService {
    */
   async updatePodcast(
     id: number,
-    data: Partial<Podcast>,
-    token: string
+    data: {
+      titre?: string;
+      description?: string;
+    },
+    audioFile?: File,
+    coverFile?: File,
+    token?: string
   ): Promise<ApiResponse<Podcast>> {
-    return apiClient.put<Podcast>(`/admin/podcasts/${id}`, data, token);
+    const formData = new FormData();
+    if (data.titre) formData.append('titre', data.titre);
+    if (data.description) formData.append('description', data.description);
+    if (audioFile) formData.append('audio', audioFile);
+    if (coverFile) formData.append('cover', coverFile);
+
+    return apiClient.uploadFile<Podcast>(`/admin/podcasts/${id}`, formData, token, 'PUT');
   }
 
   /**
