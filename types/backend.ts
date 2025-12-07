@@ -99,10 +99,17 @@ export interface FormationModule {
   formation_id: number;
   titre: string;
   description?: string;
-  type_contenu?: string; // texte, video, image, mixte
+  type_contenu?: string; // texte, video, image, mixte, pdf, ppt, html
   contenu_texte?: string; // Corps du cours (markdown/HTML)
   image_url?: string; // URL image principale du module
   video_url?: string; // URL vidéo (YouTube, fichier, etc.)
+  fichier_pdf_url?: string; // URL fichier PDF (Cloudinary)
+  fichier_ppt_url?: string; // URL fichier PowerPoint (Cloudinary)
+  fichiers_supplementaires?: Array<{
+    type: string;
+    url: string;
+    nom: string;
+  }>; // Fichiers supplémentaires (array)
   ordre: number;
   quiz?: Quiz;
 }
