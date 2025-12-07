@@ -345,12 +345,12 @@ export default function PodcastsPage() {
                 </p>
                 <div className="space-y-3">
                   {/* Lecteur audio */}
-                  {podcast.audio_url ? (
+                  {podcast.url_audio ? (
                     <div className="bg-muted/30 p-3 rounded-lg">
                       <audio controls className="w-full" controlsList="nodownload">
-                        <source src={podcast.audio_url} type="audio/mpeg" />
-                        <source src={podcast.audio_url} type="audio/mp3" />
-                        <source src={podcast.audio_url} type="audio/wav" />
+                        <source src={podcast.url_audio} type="audio/mpeg" />
+                        <source src={podcast.url_audio} type="audio/mp3" />
+                        <source src={podcast.url_audio} type="audio/wav" />
                         Votre navigateur ne supporte pas l'élément audio.
                       </audio>
                     </div>

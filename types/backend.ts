@@ -174,8 +174,8 @@ export interface Podcast {
   id: number;
   titre: string;
   description?: string;
-  audio_url: string;
-  cover_url?: string;
+  url_audio: string;
+  url_cover?: string;
   categorie?: string;
   duree?: number;
   est_en_direct?: boolean;
