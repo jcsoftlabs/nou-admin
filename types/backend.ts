@@ -62,6 +62,7 @@ export interface Membre {
   date_creation?: string;
   dernier_update?: string;
   statut?: string;
+  rating?: number;
 }
 
 // Interface Cotisation

@@ -181,6 +181,7 @@ export default function MembresPage() {
                 <TableHead>Département</TableHead>
                 <TableHead>Rôle</TableHead>
                 <TableHead>Statut</TableHead>
+                <TableHead>Note</TableHead>
                 <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -195,6 +196,16 @@ export default function MembresPage() {
                     <TableCell>{membre.departement || '-'}</TableCell>
                     <TableCell>{getRoleBadge(membre)}</TableCell>
                     <TableCell>{getStatutBadge(membre.statut)}</TableCell>
+                    <TableCell>
+                      {token && (
+                        // Lazy import avoided for brevity
+                        // eslint-disable-next-line @typescript-eslint/no-var-requires
+                        (function() {
+                          const { MemberRating } = require("@/components/member-rating");
+                          return <MemberRating membre={membre} token={token} onUpdated={() => loadMembres()} />;
+                        })()
+                      )}
+                    </TableCell>
                     <TableCell>
                       <Button size="sm" variant="outline" asChild className="mr-2">
                         <Link href={`/dashboard/membres/${membre.id}`}>

@@ -113,6 +113,13 @@ export default function MembreDetailPage({ params }: { params: Promise<{ id: str
                 <p><strong>Téléphone :</strong> {membre.telephone}</p>
                 <p><strong>Ville :</strong> {membre.ville}</p>
                 <p><strong>Membre depuis le :</strong> {membre.date_creation ? new Date(membre.date_creation).toLocaleDateString() : 'N/A'}</p>
+                <div className="mt-2">
+                  <p className="mb-1"><strong>Note :</strong></p>
+                  {token && (function() {
+                    const { MemberRating } = require("@/components/member-rating");
+                    return <MemberRating membre={membre} token={token} onUpdated={(r: number) => setMembre({ ...membre, rating: r })} />;
+                  })()}
+                </div>
              </CardContent>
            </Card>
         </div>

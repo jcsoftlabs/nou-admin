@@ -599,6 +599,22 @@ export class AdminService {
       token
     );
   }
+
+  /**
+   * Mettre à jour la note (0..5) d'un membre (augmentation seulement côté backend)
+   */
+  async updateMembreRating(
+    id: number,
+    rating: number,
+    token: string,
+    note?: string
+  ): Promise<ApiResponse<{ id: number; rating: number }>> {
+    return apiClient.put<{ id: number; rating: number }>(
+      `/admin/membres/${id}/rating`,
+      { rating, note },
+      token
+    );
+  }
 }
 
 export const adminService = new AdminService();
