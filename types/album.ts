@@ -37,8 +37,8 @@ export interface AlbumFormData {
   image_couverture?: File;
 }
 
-export interface PaginatedAlbumsResponse {
-  success: boolean;
+// Type pour la réponse paginée des albums (sans wrapper ApiResponse)
+export interface PaginatedAlbumsData {
   data: Album[];
   pagination: {
     total: number;
@@ -46,18 +46,6 @@ export interface PaginatedAlbumsResponse {
     limit: number;
     pages: number;
   };
-}
-
-export interface AlbumResponse {
-  success: boolean;
-  data: Album;
-  message?: string;
-}
-
-export interface PhotosResponse {
-  success: boolean;
-  data: AlbumPhoto[];
-  message?: string;
 }
 
 export interface AlbumFilters {

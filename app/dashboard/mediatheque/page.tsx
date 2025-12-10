@@ -28,8 +28,8 @@ export default function MediathequePage() {
       const response = await albumService.getAlbums({ page, limit: 12 }, token);
       
       if (response.success && response.data) {
-        setAlbums(response.data);
-        setTotalPages(response.pagination?.pages || 1);
+        setAlbums(response.data.data);
+        setTotalPages(response.data.pagination?.pages || 1);
       }
     } catch (error) {
       console.error('Erreur:', error);

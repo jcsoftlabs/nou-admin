@@ -1,11 +1,10 @@
 import { apiClient } from './client';
+import type { ApiResponse } from '@/types/backend';
 import type {
   Album,
   AlbumPhoto,
   AlbumFormData,
-  PaginatedAlbumsResponse,
-  AlbumResponse,
-  PhotosResponse,
+  PaginatedAlbumsData,
   AlbumFilters,
 } from '@/types/album';
 
@@ -19,7 +18,7 @@ export const albumService = {
   async getAlbums(
     filters: AlbumFilters = {},
     token?: string
-  ): Promise<PaginatedAlbumsResponse> {
+  ): Promise<ApiResponse<PaginatedAlbumsData>> {
     const params = new URLSearchParams();
     
     if (filters.page) params.append('page', filters.page.toString());
@@ -31,20 +30,20 @@ export const albumService = {
     const queryString = params.toString();
     const endpoint = `/albums${queryString ? `?${queryString}` : ''}`;
     
-    return apiClient.get<PaginatedAlbumsResponse>(endpoint, token);
+    return apiClient.get<PaginatedAlbumsData>(endpoint, token);
   },
 
   /**
    * Récupérer un album par son ID avec toutes ses photos
    */
-  async getAlbumById(id: number, token?: string): Promise<AlbumResponse> {
-    return apiClient.get<AlbumResponse>(`/albums/${id}`, token);
+  async getAlbumById(id: number, token?: string): Promise<ApiResponse<Album>> {
+    return apiClient.get<Album>(`/albums/${id}`, token);
   },
 
   /**
    * Créer un nouvel album (Admin)
    */
-  async createAlbum(data: AlbumFormData, token: string): Promise<AlbumResponse> {
+  async createAlbum(data: AlbumFormData, token: string): Promise<ApiResponse<Album>> {
     const formData = new FormData();
     
     formData.append('titre', data.titre);
@@ -55,13 +54,13 @@ export const albumService = {
     if (data.ordre !== undefined) formData.append('ordre', String(data.ordre));
     if (data.image_couverture) formData.append('image_couverture', data.image_couverture);
 
-    return apiClient.uploadFile<AlbumResponse>('/albums/admin', formData, token, 'POST');
+    return apiClient.uploadFile<Album>('/albums/admin', formData, token, 'POST');
   },
 
   /**
    * Mettre à jour un album (Admin)
    */
-  async updateAlbum(id: number, data: AlbumFormData, token: string): Promise<AlbumResponse> {
+  async updateAlbum(id: number, data: AlbumFormData, token: string): Promise<ApiResponse<Album>> {
     const formData = new FormData();
     
     if (data.titre) formData.append('titre', data.titre);
@@ -72,14 +71,14 @@ export const albumService = {
     if (data.ordre !== undefined) formData.append('ordre', String(data.ordre));
     if (data.image_couverture) formData.append('image_couverture', data.image_couverture);
 
-    return apiClient.uploadFile<AlbumResponse>(`/albums/admin/${id}`, formData, token, 'PUT');
+    return apiClient.uploadFile<Album>(`/albums/admin/${id}`, formData, token, 'PUT');
   },
 
   /**
    * Supprimer un album (Admin)
    */
-  async deleteAlbum(id: number, token: string): Promise<{ success: boolean; message?: string }> {
-    return apiClient.delete<{ success: boolean; message?: string }>(`/albums/admin/${id}`, token);
+  async deleteAlbum(id: number, token: string): Promise<ApiResponse<null>> {
+    return apiClient.delete<null>(`/albums/admin/${id}`, token);
   },
 
   /**
@@ -90,7 +89,7 @@ export const albumService = {
     photos: File[],
     legendes: string[] = [],
     token: string
-  ): Promise<PhotosResponse> {
+  ): Promise<ApiResponse<AlbumPhoto[]>> {
     const formData = new FormData();
     
     photos.forEach((photo) => {
@@ -101,7 +100,7 @@ export const albumService = {
       formData.append('legendes', JSON.stringify(legendes));
     }
 
-    return apiClient.uploadFile<PhotosResponse>(`/albums/admin/${albumId}/photos`, formData, token, 'POST');
+    return apiClient.uploadFile<AlbumPhoto[]>(`/albums/admin/${albumId}/photos`, formData, token, 'POST');
   },
 
   /**
@@ -111,8 +110,8 @@ export const albumService = {
     photoId: number,
     data: { legende?: string; ordre?: number },
     token: string
-  ): Promise<{ success: boolean; data: AlbumPhoto; message?: string }> {
-    return apiClient.put<{ success: boolean; data: AlbumPhoto; message?: string }>(
+  ): Promise<ApiResponse<AlbumPhoto>> {
+    return apiClient.put<AlbumPhoto>(
       `/albums/admin/photos/${photoId}`,
       data,
       token
@@ -122,8 +121,8 @@ export const albumService = {
   /**
    * Supprimer une photo (Admin)
    */
-  async deletePhoto(photoId: number, token: string): Promise<{ success: boolean; message?: string }> {
-    return apiClient.delete<{ success: boolean; message?: string }>(`/albums/admin/photos/${photoId}`, token);
+  async deletePhoto(photoId: number, token: string): Promise<ApiResponse<null>> {
+    return apiClient.delete<null>(`/albums/admin/photos/${photoId}`, token);
   },
 
   /**
@@ -133,8 +132,8 @@ export const albumService = {
     albumId: number,
     ordres: Array<{ photo_id: number; ordre: number }>,
     token: string
-  ): Promise<AlbumResponse> {
-    return apiClient.put<AlbumResponse>(
+  ): Promise<ApiResponse<Album>> {
+    return apiClient.put<Album>(
       `/albums/admin/${albumId}/photos/reorder`,
       { ordres },
       token
