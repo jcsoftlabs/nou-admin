@@ -28,8 +28,10 @@ export default function MediathequePage() {
       const response = await albumService.getAlbums({ page, limit: 12 }, token);
       
       if (response.success && response.data) {
-        setAlbums(response.data.data);
+        setAlbums(response.data.data || []);
         setTotalPages(response.data.pagination?.pages || 1);
+      } else {
+        setAlbums([]);
       }
     } catch (error) {
       console.error('Erreur:', error);
@@ -57,7 +59,7 @@ export default function MediathequePage() {
     }
   };
 
-  const filteredAlbums = albums.filter((album) =>
+  const filteredAlbums = (albums || []).filter((album) =>
     album.titre.toLowerCase().includes(searchTerm.toLowerCase()) ||
     album.lieu_evenement?.toLowerCase().includes(searchTerm.toLowerCase())
   );
