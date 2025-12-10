@@ -18,6 +18,7 @@ import {
   Gift, // Icone pour Dons
   Newspaper, // Icone pour News
   Megaphone, // Icone pour Annonces
+  Image as ImageIcon, // Icone pour Médiathèque
 } from 'lucide-react';
 import {
   Sidebar,
@@ -78,6 +79,11 @@ const menuItems = [
     title: 'Annonces',
     href: '/dashboard/annonces',
     icon: Megaphone,
+  },
+  {
+    title: 'Médiathèque',
+    href: '/dashboard/mediatheque',
+    icon: ImageIcon,
   },
   {
     title: 'Notifications',
