@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import Link from 'next/link';
-import { Search, UserCircle, Eye, Edit } from 'lucide-react';
+import { Search, UserCircle, Eye, Edit, Upload } from 'lucide-react';
 import { adminService } from '@/lib/api';
 import { Membre } from '@/types/backend';
 import { EditMemberStatus } from '@/components/edit-member-status';
@@ -108,7 +108,7 @@ export default function MembresPage() {
 
   return (
     <div className="space-y-6">
-<div className="flex justify-between items-center">
+      <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold flex items-center gap-2">
             <UserCircle className="h-8 w-8" />
@@ -116,7 +116,15 @@ export default function MembresPage() {
           </h1>
           <p className="text-muted-foreground">Gérez tous les membres de l&apos;organisation</p>
         </div>
-        <Button onClick={() => setIsAddingMember(true)}>Ajouter un membre</Button>
+        <div className="flex gap-2">
+          <Button variant="outline" asChild>
+            <Link href="/dashboard/membres/import">
+              <Upload className="h-4 w-4 mr-2" />
+              Importer CSV
+            </Link>
+          </Button>
+          <Button onClick={() => setIsAddingMember(true)}>Ajouter un membre</Button>
+        </div>
       </div>
 
       <Card>
