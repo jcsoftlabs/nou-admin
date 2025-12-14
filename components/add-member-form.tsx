@@ -90,6 +90,8 @@ export function AddMemberForm({
       // Ajouter le mot de passe par défaut
       const dataToSend = {
         ...formData,
+        nb_enfants: parseInt(formData.nb_enfants) || 0,
+        nb_personnes_a_charge: parseInt(formData.nb_personnes_a_charge) || 0,
         password: 'Nou491094', // Mot de passe par défaut
         // Générer le username si nécessaire
         username: formData.prenom && formData.nom 

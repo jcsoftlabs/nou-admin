@@ -44,19 +44,42 @@ export default function ParrainagePage() {
         return;
       }
 
-      const result = await adminService.getMembres(
-        { page: 1, limit: 1000 },
-        userToken
-      );
-      
-      if (result.success && result.data) {
-        const allMembres = result.data.data;
-        setMembres(allMembres);
-        calculateStats(allMembres);
-      } else {
-        setError(result.message || "Impossible de charger les données de parrainage.");
-        setMembres([]);
+      // Récupérer tous les membres en boucle pour éviter les problèmes de pagination
+      let allMembres: Membre[] = [];
+      let currentPage = 1;
+      let hasMore = true;
+      const limit = 100;
+
+      while (hasMore) {
+        const result = await adminService.getMembres(
+          { page: currentPage, limit },
+          userToken
+        );
+        
+        if (result.success && result.data) {
+          console.log(`Page ${currentPage}: reçu ${result.data.data.length} membres`);
+          console.log('IDs reçus:', result.data.data.map(m => m.id).sort((a,b) => a-b));
+          allMembres = [...allMembres, ...result.data.data];
+          
+          // Vérifier s'il y a plus de pages
+          const totalPages = Math.ceil(result.data.pagination.total / limit);
+          hasMore = currentPage < totalPages;
+          currentPage++;
+        } else {
+          setError(result.message || "Impossible de charger les données de parrainage.");
+          setMembres([]);
+          return;
+        }
       }
+      
+      console.log('=== TOTAL MEMBRES CHARGÉS:', allMembres.length);
+      console.log('Tous les IDs:', allMembres.map(m => m.id).sort((a,b) => a-b));
+      const afh1135 = allMembres.filter(m => m.code_parrain === 'AFH1135');
+      console.log('Filleuls de AFH1135:', afh1135.length);
+      console.log('Détails:', afh1135.map(m => ({ id: m.id, nom: m.nom, prenom: m.prenom })));
+      
+      setMembres(allMembres);
+      calculateStats(allMembres);
     } catch (err) {
       console.error('Erreur chargement parrainage:', err);
       setError("Une erreur critique est survenue.");
